@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TuriRecibo — Gestión de Servicios Turísticos</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #f4f6f9; --surface: #ffffff; --surface2: #f0f2f5; --border: #e2e6ea;
+  --text: #1a202c; --text-muted: #6b7280;
+  --accent: #1a56db; --accent-light: #e8f0fe; --accent-dark: #1240a0;
+  --success: #0d9f6e; --success-light: #e6f9f2;
+  --warning: #c27803; --warning-light: #fdf3dc;
+  --danger: #c81e1e; --danger-light: #fde8e8;
+  --purple: #7c3aed; --purple-light: #ede9fe;
+  --radius: 10px; --radius-lg: 14px;
+  --shadow: 0 1px 4px rgba(0,0,0,0.08); --shadow-md: 0 4px 20px rgba(0,0,0,0.13);
+}
+body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; font-size: 15px; }
+
+/* ======== AUTH ======== */
+.auth-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #0d3d9e 0%, #1a56db 55%, #0891b2 100%); padding: 1rem; }
+.auth-card { background: var(--surface); border-radius: 20px; box-shadow: var(--shadow-md); width: 100%; max-width: 430px; overflow: hidden; }
+.auth-header { background: linear-gradient(135deg, #1a56db, #0d3d9e); padding: 2rem; text-align: center; color: #fff; }
+.auth-header .logo { font-size: 50px; margin-bottom: 10px; }
+.auth-header h1 { font-size: 26px; font-weight: 800; letter-spacing: 2px; }
+.auth-header p { font-size: 13px; opacity: 0.8; margin-top: 6px; }
+.auth-tabs { display: flex; border-bottom: 1px solid var(--border); }
+.auth-tab { flex: 1; padding: 14px; text-align: center; cursor: pointer; font-size: 14px; font-weight: 600; color: var(--text-muted); border-bottom: 3px solid transparent; transition: all 0.2s; }
+.auth-tab.active { color: var(--accent); border-bottom-color: var(--accent); background: var(--accent-light); }
+.auth-body { padding: 1.8rem; }
+.auth-form { display: none; }
+.auth-form.active { display: block; }
+.auth-field { margin-bottom: 1rem; }
+.auth-field label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+.auth-field input { width: 100%; padding: 11px 14px; border: 1.5px solid var(--border); border-radius: var(--radius); font-size: 14px; font-family: inherit; transition: border-color 0.15s; }
+.auth-field input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(26,86,219,0.12); }
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.auth-btn { width: 100%; padding: 13px; background: var(--accent); color: #fff; border: none; border-radius: var(--radius); font-size: 15px; font-weight: 700; cursor: pointer; transition: background 0.15s; margin-top: 4px; }
+.auth-btn:hover { background: var(--accent-dark); }
+.auth-msg { padding: 10px 14px; border-radius: var(--radius); font-size: 13px; margin-bottom: 12px; display: none; }
+.auth-msg.show { display: block; }
+.auth-err { background: var(--danger-light); color: var(--danger); }
+.auth-ok { background: var(--success-light); color: var(--success); }
+.auth-hint { text-align: center; font-size: 12px; color: var(--text-muted); margin-top: 10px; }
+.auth-footer { text-align: center; padding: 1rem; font-size: 13px; color: var(--text-muted); border-top: 1px solid var(--border); }
+
+/* ======== APP ======== */
+.app-wrap { display: none; }
+.app-wrap.show { display: block; }
+.app-header { background: linear-gradient(135deg, #1a56db, #0d3d9e); color: #fff; padding: 0 2rem; height: 64px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(26,86,219,0.3); }
+.app-logo { display: flex; align-items: center; gap: 10px; font-size: 20px; font-weight: 700; }
+.app-logo .icon { width: 36px; height: 36px; background: rgba(255,255,255,0.2); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+.hdr-right { display: flex; align-items: center; gap: 12px; }
+.hdr-user { display: flex; align-items: center; gap: 8px; }
+.avatar { width: 34px; height: 34px; border-radius: 50%; background: rgba(255,255,255,0.25); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; }
+.hdr-info { font-size: 13px; }
+.hdr-info strong { display: block; font-size: 13px; }
+.hdr-info span { font-size: 11px; opacity: 0.75; }
+.btn-logout { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: #fff; padding: 7px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; transition: background 0.15s; }
+.btn-logout:hover { background: rgba(255,255,255,0.28); }
+.app-body { display: flex; min-height: calc(100vh - 64px); }
+.sidebar { width: 220px; flex-shrink: 0; background: var(--surface); border-right: 1px solid var(--border); padding: 1.5rem 0; }
+.nav-section { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); padding: 1.2rem 1.5rem 0.4rem; }
+.nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 1.5rem; cursor: pointer; font-size: 14px; color: var(--text-muted); border-left: 3px solid transparent; transition: all 0.15s; user-select: none; }
+.nav-item:hover { background: var(--bg); color: var(--text); }
+.nav-item.active { background: var(--accent-light); color: var(--accent); font-weight: 600; border-left-color: var(--accent); }
+.nav-icon { width: 20px; text-align: center; font-size: 17px; }
+.main-content { flex: 1; padding: 2rem; overflow-y: auto; max-height: calc(100vh - 64px); }
+.page { display: none; }
+.page.active { display: block; }
+
+/* PAGE HEADER */
+.page-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 10px; }
+.page-title { font-size: 22px; font-weight: 700; }
+.page-subtitle { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
+
+/* STATS */
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+.stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.2rem 1.5rem; box-shadow: var(--shadow); }
+.stat-label { font-size: 11px; color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+.stat-value { font-size: 26px; font-weight: 700; margin-top: 5px; }
+.stat-card.blue .stat-value { color: var(--accent); }
+.stat-card.green .stat-value { color: var(--success); }
+.stat-card.amber .stat-value { color: var(--warning); }
+.stat-card.purple .stat-value { color: var(--purple); }
+
+/* CARD */
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow); overflow: hidden; }
+.card-header { padding: 1rem 1.5rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; background: var(--surface2); }
+.card-title { font-size: 15px; font-weight: 600; }
+.card-body { padding: 1.5rem; }
+
+/* FORMS */
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.form-group { display: flex; flex-direction: column; gap: 6px; }
+.form-group.full { grid-column: 1 / -1; }
+label { font-size: 13px; font-weight: 600; color: var(--text); }
+input, select, textarea { padding: 9px 12px; border: 1.5px solid var(--border); border-radius: var(--radius); font-size: 14px; font-family: inherit; color: var(--text); background: var(--surface); transition: border-color 0.15s; width: 100%; }
+input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(26,86,219,0.12); }
+textarea { resize: vertical; min-height: 72px; }
+.input-pre { position: relative; }
+.input-pre span { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 13px; pointer-events: none; }
+.input-pre input { padding-left: 36px; }
+
+/* CALC BOX */
+.calc-box { background: linear-gradient(135deg, #e8f0fe, #dbeafe); border: 2px solid var(--accent); border-radius: var(--radius-lg); padding: 1rem 1.4rem; margin-top: 1rem; }
+.calc-head { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: var(--accent); margin-bottom: 10px; }
+.calc-row { display: flex; justify-content: space-between; font-size: 13px; padding: 4px 0; color: var(--text-muted); }
+.calc-row strong { color: var(--text); }
+.calc-divider { border-top: 1.5px dashed var(--accent); margin: 8px 0; }
+.calc-total-row { display: flex; justify-content: space-between; align-items: center; font-size: 17px; font-weight: 800; color: var(--accent); }
+
+/* BUTTONS */
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 18px; border-radius: var(--radius); font-size: 14px; font-weight: 600; cursor: pointer; border: none; transition: all 0.15s; white-space: nowrap; }
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:hover { background: var(--accent-dark); }
+.btn-success { background: var(--success); color: #fff; }
+.btn-success:hover { background: #0a8760; }
+.btn-outline { background: transparent; color: var(--accent); border: 1.5px solid var(--accent); }
+.btn-outline:hover { background: var(--accent-light); }
+.btn-warning { background: var(--warning); color: #fff; }
+.btn-warning:hover { background: #a36602; }
+.btn-danger { background: var(--danger); color: #fff; }
+.btn-danger:hover { background: #a81818; }
+.btn-sm { padding: 6px 11px; font-size: 13px; }
+.btn-group { display: flex; gap: 5px; flex-wrap: wrap; }
+
+/* BADGES */
+.badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+.badge-success { background: var(--success-light); color: var(--success); }
+.badge-warning { background: var(--warning-light); color: var(--warning); }
+.badge-danger { background: var(--danger-light); color: var(--danger); }
+.badge-info { background: var(--accent-light); color: var(--accent); }
+.badge-purple { background: var(--purple-light); color: var(--purple); }
+.badge-admin { background: #fef3c7; color: #92400e; }
+
+/* ALERT */
+.alert { padding: 12px 16px; border-radius: var(--radius); font-size: 14px; display: none; align-items: center; gap: 8px; margin-bottom: 1rem; }
+.alert.show { display: flex; }
+.alert-ok { background: var(--success-light); color: var(--success); border: 1px solid #9ae6d0; }
+.alert-err { background: var(--danger-light); color: var(--danger); border: 1px solid #fca5a5; }
+
+/* TABLE */
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+thead th { padding: 10px 14px; text-align: left; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); background: var(--surface2); border-bottom: 1px solid var(--border); white-space: nowrap; }
+tbody td { padding: 11px 14px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+tbody tr:last-child td { border-bottom: none; }
+tbody tr:hover { background: #fafbff; }
+
+/* SEARCH */
+.search-bar { display: flex; gap: 10px; align-items: center; margin-bottom: 1.2rem; flex-wrap: wrap; }
+.s-wrap { position: relative; flex: 1; min-width: 200px; }
+.s-wrap .s-ico { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); pointer-events: none; }
+.s-wrap input { padding-left: 36px; }
+
+/* MODAL */
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.48); z-index: 999; align-items: center; justify-content: center; padding: 1rem; }
+.modal-overlay.show { display: flex; }
+.modal { background: var(--surface); border-radius: var(--radius-lg); box-shadow: var(--shadow-md); width: 100%; max-width: 640px; max-height: 90vh; overflow-y: auto; }
+.modal-sm { max-width: 420px; }
+.modal-header { padding: 1.2rem 1.5rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; background: var(--surface2); }
+.modal-title { font-size: 17px; font-weight: 700; }
+.modal-body { padding: 1.5rem; }
+.modal-footer { padding: 1rem 1.5rem; border-top: 1px solid var(--border); display: flex; gap: 8px; justify-content: flex-end; }
+.btn-x { background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-muted); line-height: 1; padding: 0 4px; }
+
+/* RECEIPT */
+.receipt { font-family: 'Courier New', monospace; max-width: 400px; margin: 0 auto; border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
+.rcpt-hdr { background: linear-gradient(135deg, #1a56db, #0d3d9e); color: #fff; text-align: center; padding: 1.6rem; }
+.rcpt-hdr h2 { font-size: 19px; letter-spacing: 3px; }
+.rcpt-hdr p { font-size: 12px; opacity: 0.82; margin-top: 4px; }
+.rcpt-id { font-size: 11px; letter-spacing: 1.5px; margin-top: 6px; opacity: 0.75; }
+.rcpt-body { padding: 1.2rem; background: var(--surface); }
+.rcpt-section { font-size: 10px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); padding: 8px 0 4px; }
+.rcpt-row { display: flex; justify-content: space-between; padding: 5px 0; font-size: 13px; border-bottom: 1px dashed var(--border); }
+.rcpt-row:last-of-type { border-bottom: none; }
+.rcpt-row .lbl { color: var(--text-muted); }
+.rcpt-row .val { font-weight: 600; text-align: right; max-width: 56%; word-break: break-word; }
+.rcpt-sub { background: #f8faff; padding: 10px 12px; border-top: 1px dashed var(--border); }
+.rcpt-sub .rcpt-row { font-size: 12px; border-bottom: none; padding: 3px 0; }
+.rcpt-total { background: var(--accent-light); padding: 14px; display: flex; justify-content: space-between; align-items: center; border-top: 2px solid var(--accent); }
+.rcpt-total .lbl { font-weight: 800; color: var(--accent); font-size: 14px; }
+.rcpt-total .val { font-weight: 900; color: var(--accent); font-size: 24px; }
+.rcpt-ftr { text-align: center; padding: 1rem; background: var(--surface2); font-size: 12px; color: var(--text-muted); border-top: 1px solid var(--border); }
+
+/* EMPTY */
+.empty { text-align: center; padding: 2.5rem 1rem; color: var(--text-muted); }
+.empty .emo { font-size: 40px; margin-bottom: 8px; }
+.empty p { font-size: 14px; }
+
+@media print {
+  .auth-screen, .sidebar, .app-header, .btn, .modal-footer, .search-bar, .stats-grid, .page-header, .alert { display: none !important; }
+  .receipt { border: none; max-width: 100%; }
+  .main-content { padding: 0; max-height: none; }
+  body { background: white; }
+}
+@media (max-width: 768px) {
+  .sidebar { display: none; }
+  .form-grid { grid-template-columns: 1fr; }
+  .stats-grid { grid-template-columns: 1fr 1fr; }
+  .main-content { padding: 1rem; }
+  .app-header { padding: 0 1rem; }
+  .hdr-info { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- ========== AUTH ========== -->
+<div class="auth-screen" id="auth-screen">
+  <div class="auth-card">
+    <div class="auth-header">
+      <div class="logo">✈️</div>
+      <h1>TURIRECIBO</h1>
+      <p>Sistema de Gestión de Servicios Turísticos</p>
+    </div>
+    <div class="auth-tabs">
+      <div class="auth-tab active" id="tab-login" onclick="switchTab('login')">Iniciar Sesión</div>
+      <div class="auth-tab" id="tab-reg" onclick="switchTab('reg')">Crear Cuenta</div>
+    </div>
+    <div class="auth-body">
+      <!-- LOGIN -->
+      <div class="auth-form active" id="form-login">
+        <div class="auth-msg auth-err" id="lerr"></div>
+        <div class="auth-field"><label>Correo electrónico</label><input type="email" id="l-email" placeholder="correo@ejemplo.com" autocomplete="email"></div>
+        <div class="auth-field"><label>Contraseña</label><input type="password" id="l-pass" placeholder="••••••••" autocomplete="current-password"></div>
+        <button class="auth-btn" onclick="doLogin()">Ingresar →</button>
+        <div class="auth-hint">Demo: <strong>admin@turi.bo</strong> / <strong>admin123</strong></div>
+      </div>
+      <!-- REGISTRO -->
+      <div class="auth-form" id="form-reg">
+        <div class="auth-msg auth-err" id="rerr"></div>
+        <div class="auth-msg auth-ok" id="rok">✅ Cuenta creada. Ya puedes iniciar sesión.</div>
+        <div class="auth-field">
+          <div class="field-row">
+            <div><label>Nombre *</label><input type="text" id="r-nom" placeholder="Nombre"></div>
+            <div><label>Apellido</label><input type="text" id="r-ape" placeholder="Apellido"></div>
+          </div>
+        </div>
+        <div class="auth-field"><label>Correo electrónico *</label><input type="email" id="r-email" placeholder="correo@ejemplo.com"></div>
+        <div class="auth-field"><label>Empresa / Agencia turística</label><input type="text" id="r-emp" placeholder="Nombre de tu negocio"></div>
+        <div class="auth-field">
+          <div class="field-row">
+            <div><label>Contraseña *</label><input type="password" id="r-pass" placeholder="Mín. 6 caracteres"></div>
+            <div><label>Confirmar *</label><input type="password" id="r-pass2" placeholder="Repetir"></div>
+          </div>
+        </div>
+        <button class="auth-btn" onclick="doRegister()">Crear Cuenta →</button>
+      </div>
+    </div>
+    <div class="auth-footer">© 2025 TuriRecibo · Bolivia 🇧🇴</div>
+  </div>
+</div>
+
+<!-- ========== APP ========== -->
+<div class="app-wrap" id="app-wrap">
+  <header class="app-header">
+    <div class="app-logo"><div class="icon">✈️</div><span>TuriRecibo</span></div>
+    <div class="hdr-right">
+      <div class="hdr-user">
+        <div class="avatar" id="hdr-av">?</div>
+        <div class="hdr-info">
+          <strong id="hdr-name">—</strong>
+          <span id="hdr-role">—</span>
+        </div>
+      </div>
+      <button class="btn-logout" onclick="doLogout()">Salir</button>
+    </div>
+  </header>
+  <div class="app-body">
+    <nav class="sidebar">
+      <div class="nav-section">Principal</div>
+      <div class="nav-item active" onclick="showPage('dashboard')"><span class="nav-icon">📊</span>Panel General</div>
+      <div class="nav-item" onclick="showPage('registro')"><span class="nav-icon">➕</span>Nuevo Registro</div>
+      <div class="nav-section">Operaciones</div>
+      <div class="nav-item" onclick="showPage('historial')"><span class="nav-icon">📋</span>Historial</div>
+      <div class="nav-item" onclick="showPage('recibos')"><span class="nav-icon">🧾</span>Recibos</div>
+      <div class="nav-section">Administración</div>
+      <div class="nav-item" onclick="showPage('servicios')"><span class="nav-icon">🏷️</span>Servicios</div>
+      <div class="nav-item" onclick="showPage('reportes')"><span class="nav-icon">📈</span>Reportes</div>
+      <div class="nav-item admin-only" onclick="showPage('usuarios')" style="display:none"><span class="nav-icon">👥</span>Usuarios</div>
+    </nav>
+    <main class="main-content">
+
+      <!-- DASHBOARD -->
+      <div class="page active" id="page-dashboard">
+        <div class="page-header">
+          <div><div class="page-title">Panel General</div><div class="page-subtitle" id="dash-fecha"></div></div>
+          <button class="btn btn-primary" onclick="showPage('registro')">➕ Nuevo Registro</button>
+        </div>
+        <div class="stats-grid">
+          <div class="stat-card blue"><div class="stat-label">Total Turistas</div><div class="stat-value" id="s-tur">0</div></div>
+          <div class="stat-card green"><div class="stat-label">Ingresos Totales</div><div class="stat-value" id="s-ing">Bs. 0</div></div>
+          <div class="stat-card amber"><div class="stat-label">Transacciones</div><div class="stat-value" id="s-tra">0</div></div>
+          <div class="stat-card purple"><div class="stat-label">Servicios</div><div class="stat-value" id="s-srv">0</div></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.2rem">
+          <div class="card"><div class="card-header"><span class="card-title">🕐 Últimas Transacciones</span></div><div id="dash-rec"><div class="empty"><div class="emo">📭</div><p>Sin registros</p></div></div></div>
+          <div class="card"><div class="card-header"><span class="card-title">💳 Métodos de Pago</span></div><div class="card-body" id="dash-met"><div class="empty"><div class="emo">📊</div><p>Sin datos</p></div></div></div>
+        </div>
+      </div>
+
+      <!-- REGISTRO -->
+      <div class="page" id="page-registro">
+        <div class="page-header">
+          <div><div class="page-title" id="reg-title">Nuevo Registro</div><div class="page-subtitle">Datos del turista y servicio</div></div>
+        </div>
+        <div id="a-ok" class="alert alert-ok">✅ Registro guardado correctamente</div>
+        <div id="a-err" class="alert alert-err">❌ Completa todos los campos obligatorios (*)</div>
+
+        <div class="card" style="margin-bottom:1rem">
+          <div class="card-header"><span class="card-title">👤 Datos del Turista</span></div>
+          <div class="card-body">
+            <div class="form-grid">
+              <div class="form-group"><label>Nombre completo *</label><input type="text" id="f-nom" placeholder="Ej: Juan Pérez García"></div>
+              <div class="form-group"><label>Documento de identidad</label><input type="text" id="f-doc" placeholder="Pasaporte / CI / DNI"></div>
+              <div class="form-group"><label>Nacionalidad</label><input type="text" id="f-nac" placeholder="Ej: Boliviano, Alemán..."></div>
+              <div class="form-group"><label>Teléfono / Email</label><input type="text" id="f-con" placeholder="contacto@email.com"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom:1rem">
+          <div class="card-header"><span class="card-title">🏖️ Servicio y Cálculo Automático</span></div>
+          <div class="card-body">
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Tipo de servicio *</label>
+                <select id="f-srv" onchange="calcular()"><option value="">— Seleccionar —</option></select>
+              </div>
+              <div class="form-group"><label>Descripción adicional</label><input type="text" id="f-des" placeholder="Detalle opcional..."></div>
+              <div class="form-group"><label>Fecha del servicio *</label><input type="date" id="f-fec"></div>
+              <div class="form-group"><label>N° de personas *</label><input type="number" id="f-per" min="1" value="1" oninput="calcular()"></div>
+              <div class="form-group"><label>Método de pago *</label>
+                <select id="f-met">
+                  <option value="">— Seleccionar —</option>
+                  <option>Efectivo</option><option>Transferencia Bancaria</option>
+                  <option>Tarjeta de Crédito</option><option>Tarjeta de Débito</option>
+                  <option>QR / Pago Digital</option><option>Criptomonedas</option>
+                </select>
+              </div>
+              <div class="form-group"><label>Descuento (%)</label><input type="number" id="f-dsc" min="0" max="100" value="0" oninput="calcular()"></div>
+              <div class="form-group full"><label>Notas / Observaciones</label><textarea id="f-not" placeholder="Condiciones especiales, indicaciones..."></textarea></div>
+            </div>
+
+            <!-- CÁLCULO AUTOMÁTICO -->
+            <div class="calc-box" id="calc-box" style="display:none">
+              <div class="calc-head">💰 Cálculo Automático del Total</div>
+              <div class="calc-row"><span>Precio por persona</span><strong id="c-uni">Bs. 0.00</strong></div>
+              <div class="calc-row"><span>Número de personas</span><strong id="c-per">× 1</strong></div>
+              <div class="calc-row"><span>Subtotal</span><strong id="c-sub">Bs. 0.00</strong></div>
+              <div class="calc-row" id="c-dsc-row" style="display:none;color:var(--danger)"><span>Descuento aplicado</span><strong id="c-dsc">- Bs. 0.00</strong></div>
+              <div class="calc-divider"></div>
+              <div class="calc-total-row"><span>TOTAL A PAGAR</span><span id="c-tot">Bs. 0.00</span></div>
+            </div>
+            <input type="hidden" id="f-monto">
+            <input type="hidden" id="f-punit">
+            <input type="hidden" id="f-eid">
+          </div>
+        </div>
+
+        <div style="display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap">
+          <button class="btn btn-outline" onclick="cancelEdit()">✖ Cancelar</button>
+          <button class="btn btn-outline" onclick="clearForm()">🗑️ Limpiar</button>
+          <button class="btn btn-success" onclick="saveReg()" id="btn-save">💾 Guardar y Generar Recibo</button>
+        </div>
+      </div>
+
+      <!-- HISTORIAL -->
+      <div class="page" id="page-historial">
+        <div class="page-header">
+          <div><div class="page-title">Historial de Transacciones</div><div class="page-subtitle">Consulta, edita y elimina registros</div></div>
+          <button class="btn btn-outline btn-sm" onclick="exportCSV()">📤 Exportar CSV</button>
+        </div>
+        <div class="search-bar">
+          <div class="s-wrap"><span class="s-ico">🔍</span><input type="text" id="q" placeholder="Buscar por nombre, servicio, nacionalidad..." oninput="filterHist()"></div>
+          <select id="fmet" onchange="filterHist()" style="width:180px">
+            <option value="">Todos los pagos</option>
+            <option>Efectivo</option><option>Transferencia Bancaria</option>
+            <option>Tarjeta de Crédito</option><option>Tarjeta de Débito</option>
+            <option>QR / Pago Digital</option><option>Criptomonedas</option>
+          </select>
+        </div>
+        <div class="card">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Recibo</th><th>Turista</th><th>Servicio</th><th>Fecha</th><th>Personas</th><th>Precio Unit.</th><th>Total</th><th>Método</th><th>Acciones</th></tr></thead>
+              <tbody id="t-hist"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- RECIBOS -->
+      <div class="page" id="page-recibos">
+        <div class="page-header"><div><div class="page-title">Recibos Generados</div><div class="page-subtitle">Vista rápida de todos los recibos</div></div></div>
+        <div id="lista-rec" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1.2rem"></div>
+      </div>
+
+      <!-- SERVICIOS -->
+      <div class="page" id="page-servicios">
+        <div class="page-header">
+          <div><div class="page-title">Catálogo de Servicios</div><div class="page-subtitle">CRUD completo de servicios turísticos</div></div>
+          <button class="btn btn-primary" onclick="openSrvModal()">➕ Agregar Servicio</button>
+        </div>
+        <div class="card">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Servicio</th><th>Precio/persona</th><th>Categoría</th><th>Descripción</th><th>Acciones</th></tr></thead>
+              <tbody id="t-srv"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- REPORTES -->
+      <div class="page" id="page-reportes">
+        <div class="page-header"><div><div class="page-title">Reportes y Estadísticas</div><div class="page-subtitle">Análisis de operaciones turísticas</div></div></div>
+        <div class="stats-grid">
+          <div class="stat-card blue"><div class="stat-label">Promedio por transacción</div><div class="stat-value" id="rp-avg">Bs. 0</div></div>
+          <div class="stat-card green"><div class="stat-label">Mayor ingreso</div><div class="stat-value" id="rp-max">Bs. 0</div></div>
+          <div class="stat-card amber"><div class="stat-label">Ingresos este mes</div><div class="stat-value" id="rp-mes">Bs. 0</div></div>
+          <div class="stat-card purple"><div class="stat-label">Turistas únicos</div><div class="stat-value" id="rp-uni">0</div></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.2rem">
+          <div class="card"><div class="card-header"><span class="card-title">📊 Top Servicios por Ingreso</span></div><div class="card-body" id="rp-srv"></div></div>
+          <div class="card"><div class="card-header"><span class="card-title">🌍 Turistas por Nacionalidad</span></div><div class="card-body" id="rp-nac"></div></div>
+        </div>
+      </div>
+
+      <!-- USUARIOS (admin) -->
+      <div class="page" id="page-usuarios">
+        <div class="page-header"><div><div class="page-title">Gestión de Usuarios</div><div class="page-subtitle">Administra las cuentas registradas</div></div></div>
+        <div class="card">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Nombre</th><th>Email</th><th>Empresa</th><th>Rol</th><th>Registrado</th><th>Acciones</th></tr></thead>
+              <tbody id="t-usr"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- MODALES -->
+<div class="modal-overlay" id="m-recibo">
+  <div class="modal"><div class="modal-header"><span class="modal-title">🧾 Recibo Digital</span><button class="btn-x" onclick="closeM('m-recibo')">×</button></div><div class="modal-body" id="m-rec-body"></div><div class="modal-footer"><button class="btn btn-outline" onclick="closeM('m-recibo')">Cerrar</button><button class="btn btn-primary" onclick="window.print()">🖨️ Imprimir / PDF</button></div></div>
+</div>
+
+<div class="modal-overlay" id="m-srv">
+  <div class="modal modal-sm">
+    <div class="modal-header"><span class="modal-title" id="srv-m-title">🏷️ Agregar Servicio</span><button class="btn-x" onclick="closeM('m-srv')">×</button></div>
+    <div class="modal-body">
+      <div class="form-group" style="margin-bottom:1rem"><label>Nombre del servicio *</label><input type="text" id="sm-nom" placeholder="Tour, Alojamiento..."></div>
+      <div class="form-group" style="margin-bottom:1rem"><label>Precio base por persona (Bs.) *</label><div class="input-pre"><span>Bs.</span><input type="number" id="sm-pre" min="0" step="0.01" placeholder="0.00"></div></div>
+      <div class="form-group" style="margin-bottom:1rem"><label>Categoría</label>
+        <select id="sm-cat"><option>Tour y Excursiones</option><option>Alojamiento</option><option>Transporte</option><option>Gastronomía</option><option>Guía Turístico</option><option>Aventura y Deportes</option><option>Cultural y Artesanal</option><option>Otro</option></select>
+      </div>
+      <div class="form-group"><label>Descripción</label><textarea id="sm-des" placeholder="Breve descripción..."></textarea></div>
+      <input type="hidden" id="sm-eid">
+    </div>
+    <div class="modal-footer"><button class="btn btn-outline" onclick="closeM('m-srv')">Cancelar</button><button class="btn btn-primary" id="sm-btn" onclick="saveSrv()">Guardar</button></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="m-confirm">
+  <div class="modal modal-sm">
+    <div class="modal-header"><span class="modal-title">⚠️ Confirmar eliminación</span><button class="btn-x" onclick="closeM('m-confirm')">×</button></div>
+    <div class="modal-body"><p id="m-confirm-msg" style="font-size:15px;line-height:1.6"></p></div>
+    <div class="modal-footer"><button class="btn btn-outline" onclick="closeM('m-confirm')">Cancelar</button><button class="btn btn-danger" id="m-confirm-ok">Eliminar</button></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="m-usr">
+  <div class="modal modal-sm">
+    <div class="modal-header"><span class="modal-title">✏️ Editar Usuario</span><button class="btn-x" onclick="closeM('m-usr')">×</button></div>
+    <div class="modal-body">
+      <div class="form-group" style="margin-bottom:1rem"><label>Nombre completo</label><input type="text" id="eu-nom"></div>
+      <div class="form-group" style="margin-bottom:1rem"><label>Empresa / Agencia</label><input type="text" id="eu-emp"></div>
+      <div class="form-group"><label>Rol en el sistema</label><select id="eu-rol"><option value="user">Usuario</option><option value="admin">Administrador</option></select></div>
+      <input type="hidden" id="eu-id">
+    </div>
+    <div class="modal-footer"><button class="btn btn-outline" onclick="closeM('m-usr')">Cancelar</button><button class="btn btn-primary" onclick="saveUsr()">Guardar</button></div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// DB (localStorage)
+// ============================================================
+const DB = {
+  g(k) { return JSON.parse(localStorage.getItem('tr_'+k) || (k==='counter'?'1000':'[]')); },
+  s(k,v) { localStorage.setItem('tr_'+k, JSON.stringify(v)); },
+  get users() { return this.g('users'); }, set users(v) { this.s('users',v); },
+  get regs() { return this.g('regs'); }, set regs(v) { this.s('regs',v); },
+  get srvs() { return this.g('srvs'); }, set srvs(v) { this.s('srvs',v); },
+  get ctr() { return parseInt(this.g('counter')); }, set ctr(v) { this.s('counter',v); },
+};
+let ME = null;
+
+// Seed admin
+(()=>{ let u=DB.users; if(!u.find(x=>x.email==='admin@turi.bo')){ u.push({id:'admin',nom:'Administrador',ape:'Sistema',email:'admin@turi.bo',pass:'admin123',emp:'TuriRecibo',rol:'admin',ts:Date.now()}); DB.users=u; }})();
+// Seed services
+(()=>{ if(!DB.srvs.length){ DB.srvs=[
+  {id:'s1',nom:'Tour al Salar de Uyuni',pre:350,cat:'Tour y Excursiones',des:'Incluye transporte y guía'},
+  {id:'s2',nom:'Trekking Huayna Potosí',pre:280,cat:'Aventura y Deportes',des:'3 días / 2 noches'},
+  {id:'s3',nom:'Tour Isla del Sol',pre:120,cat:'Tour y Excursiones',des:'Barco + guía local'},
+  {id:'s4',nom:'Guía turístico local (día)',pre:200,cat:'Guía Turístico',des:'Jornada completa 8h'},
+  {id:'s5',nom:'Alojamiento estándar',pre:150,cat:'Alojamiento',des:'Por noche por persona'},
+  {id:'s6',nom:'Transfer aeropuerto',pre:80,cat:'Transporte',des:'Ida o vuelta'},
+]; }})();
+
+// ============================================================
+// AUTH
+// ============================================================
+function switchTab(t) {
+  ['login','reg'].forEach(x=>{ document.getElementById('tab-'+x).classList.toggle('active',x===t); document.getElementById('form-'+x).classList.toggle('active',x===t); });
+}
+function doLogin() {
+  const em=v('l-email').toLowerCase(), pw=v('l-pass'), el=document.getElementById('lerr');
+  el.classList.remove('show');
+  const u=DB.users.find(x=>x.email===em&&x.pass===pw);
+  if(!u){el.textContent='❌ Correo o contraseña incorrectos.';el.classList.add('show');return;}
+  ME=u; launchApp();
+}
+function doRegister() {
+  const nom=v('r-nom').trim(),ape=v('r-ape').trim(),em=v('r-email').trim().toLowerCase(),emp=v('r-emp').trim(),pw=v('r-pass'),pw2=v('r-pass2');
+  const e=document.getElementById('rerr'),ok=document.getElementById('rok');
+  e.classList.remove('show');ok.classList.remove('show');
+  if(!nom||!em||!pw){e.textContent='❌ Nombre, email y contraseña son obligatorios.';e.classList.add('show');return;}
+  if(pw.length<6){e.textContent='❌ La contraseña debe tener mínimo 6 caracteres.';e.classList.add('show');return;}
+  if(pw!==pw2){e.textContent='❌ Las contraseñas no coinciden.';e.classList.add('show');return;}
+  let u=DB.users;
+  if(u.find(x=>x.email===em)){e.textContent='❌ Este email ya está registrado.';e.classList.add('show');return;}
+  u.push({id:'u'+Date.now(),nom,ape,email:em,pass:pw,emp,rol:'user',ts:Date.now()});
+  DB.users=u;
+  ok.classList.add('show');
+  setTimeout(()=>switchTab('login'),1600);
+}
+function doLogout(){ME=null;document.getElementById('app-wrap').classList.remove('show');document.getElementById('auth-screen').style.display='flex';sv('l-email','');sv('l-pass','');}
+
+function launchApp(){
+  document.getElementById('auth-screen').style.display='none';
+  document.getElementById('app-wrap').classList.add('show');
+  document.getElementById('hdr-av').textContent=(ME.nom[0]+(ME.ape?ME.ape[0]:'')).toUpperCase();
+  document.getElementById('hdr-name').textContent=ME.nom+' '+(ME.ape||'');
+  document.getElementById('hdr-role').textContent=ME.rol==='admin'?'🔑 Admin':'👤 Usuario';
+  document.getElementById('dash-fecha').textContent=new Date().toLocaleDateString('es-BO',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  document.querySelectorAll('.admin-only').forEach(el=>el.style.display=ME.rol==='admin'?'flex':'none');
+  fillSrvSel();
+  renderDash();
+  showPage('dashboard');
+}
+
+// ============================================================
+// NAV
+// ============================================================
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>{ if((n.getAttribute('onclick')||'').includes("'"+id+"'")) n.classList.add('active'); });
+  ({dashboard:renderDash,historial:renderHist,recibos:renderRecibos,servicios:renderSrvs,reportes:renderReportes,usuarios:renderUsrs,registro:()=>{fillSrvSel();sv('f-fec',today());}
+  })[id]?.();
+}
+
+// ============================================================
+// HELPERS
+// ============================================================
+const v=id=>document.getElementById(id).value;
+const sv=(id,val)=>{document.getElementById(id).value=val;};
+const today=()=>new Date().toISOString().split('T')[0];
+const fmtDate=d=>new Date(d+'T12:00:00').toLocaleDateString('es-BO',{day:'2-digit',month:'2-digit',year:'numeric'});
+const uid=()=>'r'+Date.now().toString(36)+Math.random().toString(36).slice(2,5);
+function showAlert(id,ms=3200){const el=document.getElementById(id);el.classList.add('show');setTimeout(()=>el.classList.remove('show'),ms);}
+function closeM(id){document.getElementById(id).classList.remove('show');}
+document.querySelectorAll('.modal-overlay').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('show');}));
+function confirm2(msg,cb){document.getElementById('m-confirm-msg').textContent=msg;document.getElementById('m-confirm').classList.add('show');document.getElementById('m-confirm-ok').onclick=()=>{closeM('m-confirm');cb();};}
+const metBadge=m=>{ const mp={'Efectivo':'badge-success','Transferencia Bancaria':'badge-info','Tarjeta de Crédito':'badge-warning','Tarjeta de Débito':'badge-warning','QR / Pago Digital':'badge-purple','Criptomonedas':'badge-danger'}; return `<span class="badge ${mp[m]||'badge-info'}">${m}</span>`; };
+
+// ============================================================
+// SERVICIOS CRUD
+// ============================================================
+function fillSrvSel(){
+  const sel=document.getElementById('f-srv'), cur=sel.value;
+  sel.innerHTML='<option value="">— Seleccionar servicio —</option>';
+  DB.srvs.forEach(s=>{ const o=document.createElement('option');o.value=s.id;o.textContent=`${s.nom} — Bs. ${s.pre.toFixed(2)}/pers.`;sel.appendChild(o); });
+  sel.value=cur;
+}
+function calcular(){
+  const sid=v('f-srv'), per=Math.max(1,parseInt(v('f-per'))||1), dsc=Math.min(100,Math.max(0,parseFloat(v('f-dsc'))||0));
+  const box=document.getElementById('calc-box');
+  if(!sid){box.style.display='none';sv('f-monto','');return;}
+  const s=DB.srvs.find(x=>x.id===sid); if(!s)return;
+  const sub=s.pre*per, desc=sub*(dsc/100), tot=sub-desc;
+  document.getElementById('c-uni').textContent=`Bs. ${s.pre.toFixed(2)}`;
+  document.getElementById('c-per').textContent=`× ${per}`;
+  document.getElementById('c-sub').textContent=`Bs. ${sub.toFixed(2)}`;
+  const dr=document.getElementById('c-dsc-row');
+  if(dsc>0){dr.style.display='flex';document.getElementById('c-dsc').textContent=`- Bs. ${desc.toFixed(2)} (${dsc}%)`;} else dr.style.display='none';
+  document.getElementById('c-tot').textContent=`Bs. ${tot.toFixed(2)}`;
+  sv('f-monto',tot.toFixed(2));
+  sv('f-punit',s.pre.toFixed(2));
+  box.style.display='block';
+}
+
+function renderSrvs(){
+  const tb=document.getElementById('t-srv'), data=DB.srvs;
+  if(!data.length){tb.innerHTML='<tr><td colspan="5"><div class="empty"><div class="emo">🏷️</div><p>Sin servicios</p></div></td></tr>';return;}
+  tb.innerHTML=data.map(s=>`
+    <tr>
+      <td><strong>${s.nom}</strong></td>
+      <td><strong style="color:var(--success)">Bs. ${s.pre.toFixed(2)}</strong></td>
+      <td><span class="badge badge-info">${s.cat}</span></td>
+      <td style="font-size:13px;color:var(--text-muted)">${s.des||'—'}</td>
+      <td><div class="btn-group">
+        <button class="btn btn-sm btn-warning" onclick="openSrvModal('${s.id}')">✏️ Editar</button>
+        <button class="btn btn-sm btn-danger" onclick="confirm2('¿Eliminar el servicio \\\"${s.nom}\\\"? Los registros existentes no se verán afectados.',()=>delSrv('${s.id}'))">🗑️</button>
+      </div></td>
+    </tr>`).join('');
+}
+function openSrvModal(id=null){
+  sv('sm-eid',id||'');
+  document.getElementById('srv-m-title').textContent=id?'✏️ Editar Servicio':'🏷️ Agregar Servicio';
+  document.getElementById('sm-btn').textContent=id?'Actualizar':'Guardar';
+  if(id){ const s=DB.srvs.find(x=>x.id===id);sv('sm-nom',s.nom);sv('sm-pre',s.pre);sv('sm-cat',s.cat);sv('sm-des',s.des||''); }
+  else { ['sm-nom','sm-pre','sm-des'].forEach(i=>sv(i,''));sv('sm-cat','Tour y Excursiones'); }
+  document.getElementById('m-srv').classList.add('show');
+}
+function saveSrv(){
+  const nom=v('sm-nom').trim(), pre=parseFloat(v('sm-pre')), cat=v('sm-cat'), des=v('sm-des').trim(), eid=v('sm-eid');
+  if(!nom||isNaN(pre)||pre<=0)return;
+  let svcs=DB.srvs;
+  if(eid){const i=svcs.findIndex(x=>x.id===eid);svcs[i]={...svcs[i],nom,pre,cat,des};}
+  else svcs.push({id:'s'+Date.now(),nom,pre,cat,des});
+  DB.srvs=svcs; closeM('m-srv'); renderSrvs(); fillSrvSel();
+}
+function delSrv(id){DB.srvs=DB.srvs.filter(s=>s.id!==id);renderSrvs();fillSrvSel();}
+
+// ============================================================
+// REGISTROS CRUD
+// ============================================================
+function saveReg(){
+  const nom=v('f-nom').trim(), sid=v('f-srv'), fec=v('f-fec'), per=parseInt(v('f-per'))||0, met=v('f-met'), monto=parseFloat(v('f-monto')), eid=v('f-eid');
+  if(!nom||!sid||!fec||!met||!per||isNaN(monto)||monto<=0){showAlert('a-err');return;}
+  const s=DB.srvs.find(x=>x.id===sid);
+  const r={ id:eid||uid(), nom, doc:v('f-doc'), nac:v('f-nac'), con:v('f-con'), sid, snom:s?s.nom:sid, des:v('f-des'), fec, per, monto, punit:parseFloat(v('f-punit'))||0, dsc:parseFloat(v('f-dsc'))||0, met, not:v('f-not'), ts:eid?(DB.regs.find(x=>x.id===eid)?.ts||Date.now()):Date.now(), uid:ME.id };
+  let regs=DB.regs;
+  if(eid){const i=regs.findIndex(x=>x.id===eid);regs[i]=r;} else regs.unshift(r);
+  DB.regs=regs; showAlert('a-ok'); clearForm();
+  setTimeout(()=>showRecibo(r.id),450);
+}
+function editReg(id){
+  const r=DB.regs.find(x=>x.id===id); if(!r)return;
+  showPage('registro');
+  document.getElementById('reg-title').textContent='Editar Registro';
+  document.getElementById('btn-save').textContent='💾 Actualizar Registro';
+  sv('f-nom',r.nom);sv('f-doc',r.doc||'');sv('f-nac',r.nac||'');sv('f-con',r.con||'');sv('f-des',r.des||'');sv('f-fec',r.fec);sv('f-per',r.per);sv('f-dsc',r.dsc||0);sv('f-met',r.met);sv('f-not',r.not||'');sv('f-eid',r.id);
+  fillSrvSel(); sv('f-srv',r.sid); calcular();
+}
+function delReg(id){DB.regs=DB.regs.filter(r=>r.id!==id);renderHist();renderDash();}
+function cancelEdit(){clearForm();showPage('historial');}
+function clearForm(){
+  ['f-nom','f-doc','f-nac','f-con','f-des','f-not','f-monto','f-punit','f-eid'].forEach(i=>sv(i,''));
+  sv('f-srv','');sv('f-met','');sv('f-per','1');sv('f-dsc','0');sv('f-fec',today());
+  document.getElementById('calc-box').style.display='none';
+  document.getElementById('reg-title').textContent='Nuevo Registro';
+  document.getElementById('btn-save').textContent='💾 Guardar y Generar Recibo';
+}
+
+// ============================================================
+// HISTORIAL
+// ============================================================
+function filterHist(){
+  const q=v('q').toLowerCase(), m=v('fmet');
+  let d=DB.regs;
+  if(q)d=d.filter(r=>(r.nom+r.snom+(r.nac||'')+(r.met||'')).toLowerCase().includes(q));
+  if(m)d=d.filter(r=>r.met===m);
+  renderTblHist(d);
+}
+function renderHist(){sv('q','');sv('fmet','');renderTblHist(DB.regs);}
+function renderTblHist(data){
+  const tb=document.getElementById('t-hist');
+  if(!data.length){tb.innerHTML='<tr><td colspan="9"><div class="empty"><div class="emo">📭</div><p>Sin registros encontrados</p></div></td></tr>';return;}
+  tb.innerHTML=data.map(r=>`
+    <tr>
+      <td><code style="font-size:11px;background:var(--accent-light);color:var(--accent);padding:2px 6px;border-radius:5px">${r.id.slice(-6).toUpperCase()}</code></td>
+      <td><strong>${r.nom}</strong>${r.nac?`<div style="font-size:11px;color:var(--text-muted)">${r.nac}</div>`:''}</td>
+      <td style="max-width:160px">${r.snom}</td>
+      <td style="white-space:nowrap">${fmtDate(r.fec)}</td>
+      <td style="text-align:center">${r.per}</td>
+      <td>Bs. ${(r.punit||0).toFixed(2)}</td>
+      <td><strong style="color:var(--success)">Bs. ${r.monto.toFixed(2)}</strong>${r.dsc>0?`<div style="font-size:11px;color:var(--danger)">Desc. ${r.dsc}%</div>`:''}</td>
+      <td>${metBadge(r.met)}</td>
+      <td><div class="btn-group">
+        <button class="btn btn-sm btn-outline" onclick="showRecibo('${r.id}')" title="Ver recibo">🧾</button>
+        <button class="btn btn-sm btn-warning" onclick="editReg('${r.id}')" title="Editar">✏️</button>
+        <button class="btn btn-sm btn-danger" onclick="confirm2('¿Eliminar el registro de ${r.nom.replace(/'/g,"\\'")}? Esta acción no se puede deshacer.',()=>delReg('${r.id}'))">🗑️</button>
+      </div></td>
+    </tr>`).join('');
+}
+
+// ============================================================
+// RECIBOS
+// ============================================================
+function renderRecibos(){
+  const c=document.getElementById('lista-rec'), data=DB.regs;
+  if(!data.length){c.innerHTML='<div class="empty" style="grid-column:1/-1"><div class="emo">🧾</div><p>Sin recibos generados</p></div>';return;}
+  c.innerHTML=data.slice(0,20).map(r=>`
+    <div class="card" style="cursor:pointer;transition:transform 0.15s,box-shadow 0.15s" onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 8px 24px rgba(0,0,0,0.12)'" onmouseout="this.style.transform='';this.style.boxShadow=''" onclick="showRecibo('${r.id}')">
+      <div class="card-body">
+        <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+          <code style="font-size:11px;background:var(--accent-light);color:var(--accent);padding:2px 8px;border-radius:6px">#${r.id.slice(-6).toUpperCase()}</code>
+          <span style="font-size:12px;color:var(--text-muted)">${fmtDate(r.fec)}</span>
+        </div>
+        <div style="font-weight:700;font-size:16px;margin-bottom:3px">${r.nom}</div>
+        <div style="font-size:13px;color:var(--text-muted);margin-bottom:10px">${r.snom} · ${r.per} pers.</div>
+        <div style="display:flex;justify-content:space-between;align-items:center">${metBadge(r.met)}<strong style="color:var(--success);font-size:18px">Bs. ${r.monto.toFixed(2)}</strong></div>
+      </div>
+    </div>`).join('');
+}
+function showRecibo(id){
+  const r=DB.regs.find(x=>x.id===id); if(!r)return;
+  const sub=r.punit*r.per, desc=sub*(r.dsc/100);
+  document.getElementById('m-rec-body').innerHTML=`
+    <div class="receipt">
+      <div class="rcpt-hdr">
+        <div style="font-size:36px;margin-bottom:8px">✈️</div>
+        <h2>TURIRECIBO</h2>
+        <p>Recibo Oficial de Servicio Turístico</p>
+        <div class="rcpt-id">N° ${r.id.slice(-8).toUpperCase()}</div>
+        <div style="font-size:10px;opacity:0.65;margin-top:6px">Emitido: ${new Date(r.ts).toLocaleString('es-BO')}</div>
+      </div>
+      <div class="rcpt-body">
+        <div class="rcpt-section">Datos del Turista</div>
+        <div class="rcpt-row"><span class="lbl">Nombre</span><span class="val">${r.nom}</span></div>
+        ${r.doc?`<div class="rcpt-row"><span class="lbl">Documento</span><span class="val">${r.doc}</span></div>`:''}
+        ${r.nac?`<div class="rcpt-row"><span class="lbl">Nacionalidad</span><span class="val">${r.nac}</span></div>`:''}
+        ${r.con?`<div class="rcpt-row"><span class="lbl">Contacto</span><span class="val">${r.con}</span></div>`:''}
+        <div class="rcpt-section">Detalle del Servicio</div>
+        <div class="rcpt-row"><span class="lbl">Servicio</span><span class="val">${r.snom}</span></div>
+        ${r.des?`<div class="rcpt-row"><span class="lbl">Detalle</span><span class="val">${r.des}</span></div>`:''}
+        <div class="rcpt-row"><span class="lbl">Fecha</span><span class="val">${fmtDate(r.fec)}</span></div>
+        <div class="rcpt-row"><span class="lbl">Personas</span><span class="val">${r.per}</span></div>
+        <div class="rcpt-row"><span class="lbl">Método de pago</span><span class="val">${r.met}</span></div>
+        ${r.not?`<div class="rcpt-row"><span class="lbl">Notas</span><span class="val">${r.not}</span></div>`:''}
+      </div>
+      <div class="rcpt-sub">
+        <div class="rcpt-row"><span class="lbl">Precio unitario</span><span class="val">Bs. ${(r.punit||0).toFixed(2)}</span></div>
+        <div class="rcpt-row"><span class="lbl">× ${r.per} persona${r.per>1?'s':''}</span><span class="val">Bs. ${sub.toFixed(2)}</span></div>
+        ${r.dsc>0?`<div class="rcpt-row" style="color:var(--danger)"><span class="lbl">Descuento ${r.dsc}%</span><span class="val">- Bs. ${desc.toFixed(2)}</span></div>`:''}
+      </div>
+      <div class="rcpt-total"><span class="lbl">TOTAL PAGADO</span><span class="val">Bs. ${r.monto.toFixed(2)}</span></div>
+      <div class="rcpt-ftr">
+        <div>🙏 Gracias por elegir nuestros servicios turísticos</div>
+        <div style="margin-top:4px;font-size:11px">Recibo válido como comprobante de pago · Bolivia 🇧🇴</div>
+      </div>
+    </div>`;
+  document.getElementById('m-recibo').classList.add('show');
+}
+
+// ============================================================
+// DASHBOARD
+// ============================================================
+function renderDash(){
+  const data=DB.regs, tot=data.reduce((s,r)=>s+r.monto,0);
+  document.getElementById('s-tur').textContent=new Set(data.map(r=>r.nom)).size;
+  document.getElementById('s-ing').textContent='Bs. '+tot.toFixed(2);
+  document.getElementById('s-tra').textContent=data.length;
+  document.getElementById('s-srv').textContent=DB.srvs.length;
+  const rec=document.getElementById('dash-rec');
+  rec.innerHTML=data.slice(0,5).length?data.slice(0,5).map(r=>`
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 16px;border-bottom:1px solid var(--border);cursor:pointer" onclick="showRecibo('${r.id}')">
+      <div><div style="font-weight:600;font-size:14px">${r.nom}</div><div style="font-size:11px;color:var(--text-muted)">${r.snom} · ${r.per} pers. · ${fmtDate(r.fec)}</div></div>
+      <strong style="color:var(--success);white-space:nowrap">Bs. ${r.monto.toFixed(2)}</strong>
+    </div>`).join(''):'<div class="empty"><div class="emo">📭</div><p>Sin registros</p></div>';
+  const mmap={};data.forEach(r=>mmap[r.met]=(mmap[r.met]||0)+1);
+  const tot2=data.length||1;
+  document.getElementById('dash-met').innerHTML=Object.keys(mmap).length?Object.entries(mmap).sort((a,b)=>b[1]-a[1]).map(([m,c])=>{
+    const p=Math.round(c/tot2*100);
+    return `<div style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px"><span>${m}</span><span style="font-weight:600">${c} (${p}%)</span></div><div style="background:var(--border);border-radius:4px;height:7px"><div style="width:${p}%;background:var(--accent);height:7px;border-radius:4px;transition:width 0.6s"></div></div></div>`;
+  }).join(''):'<div class="empty"><div class="emo">📊</div><p>Sin datos</p></div>';
+}
+
+// ============================================================
+// REPORTES
+// ============================================================
+function renderReportes(){
+  const data=DB.regs; if(!data.length)return;
+  const montos=data.map(r=>r.monto), tot=montos.reduce((a,b)=>a+b,0);
+  document.getElementById('rp-avg').textContent='Bs. '+(tot/data.length).toFixed(2);
+  document.getElementById('rp-max').textContent='Bs. '+Math.max(...montos).toFixed(2);
+  const mes=new Date().toISOString().slice(0,7);
+  document.getElementById('rp-mes').textContent='Bs. '+data.filter(r=>r.fec.startsWith(mes)).reduce((s,r)=>s+r.monto,0).toFixed(2);
+  document.getElementById('rp-uni').textContent=new Set(data.map(r=>r.nom)).size;
+  const sm={};data.forEach(r=>sm[r.snom]=(sm[r.snom]||0)+r.monto);
+  const top=Object.entries(sm).sort((a,b)=>b[1]-a[1]).slice(0,5), mx=top[0]?.[1]||1;
+  document.getElementById('rp-srv').innerHTML=top.length?top.map(([s,v])=>`
+    <div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:3px"><span style="font-weight:600">${s}</span><span>Bs. ${v.toFixed(2)}</span></div><div style="background:var(--border);border-radius:4px;height:6px"><div style="width:${Math.round(v/mx*100)}%;background:var(--success);height:6px;border-radius:4px"></div></div></div>`).join(''):'<div class="empty"><p>Sin datos</p></div>';
+  const nm={};data.forEach(r=>{if(r.nac)nm[r.nac]=(nm[r.nac]||0)+1;});
+  const na=Object.entries(nm).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  document.getElementById('rp-nac').innerHTML=na.length?na.map(([n,c])=>`<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:14px"><span>🌍 ${n}</span><span class="badge badge-info">${c}</span></div>`).join(''):'<div class="empty"><p>Sin nacionalidades</p></div>';
+}
+
+// ============================================================
+// USUARIOS CRUD (solo admin)
+// ============================================================
+function renderUsrs(){
+  if(ME?.rol!=='admin')return;
+  document.getElementById('t-usr').innerHTML=DB.users.map(u=>`
+    <tr>
+      <td><strong>${u.nom} ${u.ape||''}</strong></td>
+      <td style="font-size:13px">${u.email}</td>
+      <td style="font-size:13px">${u.emp||'—'}</td>
+      <td><span class="badge ${u.rol==='admin'?'badge-admin':'badge-info'}">${u.rol==='admin'?'🔑 Admin':'👤 Usuario'}</span></td>
+      <td style="font-size:12px;color:var(--text-muted)">${new Date(u.ts).toLocaleDateString('es-BO')}</td>
+      <td><div class="btn-group">
+        <button class="btn btn-sm btn-warning" onclick="openUsrModal('${u.id}')">✏️</button>
+        ${u.id!=='admin'?`<button class="btn btn-sm btn-danger" onclick="confirm2('¿Eliminar al usuario ${u.nom}?',()=>delUsr('${u.id}'))">🗑️</button>`:''}
+      </div></td>
+    </tr>`).join('');
+}
+function openUsrModal(id){
+  const u=DB.users.find(x=>x.id===id);
+  sv('eu-id',id);sv('eu-nom',(u.nom+' '+(u.ape||'')).trim());sv('eu-emp',u.emp||'');sv('eu-rol',u.rol);
+  document.getElementById('m-usr').classList.add('show');
+}
+function saveUsr(){
+  const id=v('eu-id'), pts=v('eu-nom').trim().split(' ');
+  let us=DB.users, i=us.findIndex(x=>x.id===id);
+  us[i]={...us[i],nom:pts[0],ape:pts.slice(1).join(' '),emp:v('eu-emp').trim(),rol:v('eu-rol')};
+  DB.users=us; closeM('m-usr'); renderUsrs();
+}
+function delUsr(id){DB.users=DB.users.filter(u=>u.id!==id);renderUsrs();}
+
+// ============================================================
+// EXPORTAR CSV
+// ============================================================
+function exportCSV(){
+  const data=DB.regs; if(!data.length)return;
+  const h=['ID','Nombre','Documento','Nacionalidad','Contacto','Servicio','Fecha','Personas','Precio Unit.','Descuento%','Total Bs.','Método','Notas','Fecha Registro'];
+  const rows=data.map(r=>[r.id,r.nom,r.doc,r.nac,r.con,r.snom,r.fec,r.per,(r.punit||0).toFixed(2),r.dsc||0,r.monto.toFixed(2),r.met,r.not,new Date(r.ts).toLocaleString('es-BO')].map(x=>`"${String(x||'').replace(/"/g,'""')}"`));
+  const csv=[h.join(','),...rows.map(r=>r.join(','))].join('\n');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'}));a.download=`turirecibo_${today()}.csv`;a.click();
+}
+
+// ============================================================
+// INIT
+// ============================================================
+['l-email','l-pass','r-nom','r-email','r-pass','r-pass2'].forEach(id=>{
+  document.getElementById(id).addEventListener('keydown',e=>{if(e.key==='Enter'){id.startsWith('l-')?doLogin():doRegister();}});
+});
+</script>
+</body>
+</html>
