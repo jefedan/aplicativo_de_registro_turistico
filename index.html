@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TuriRecibo — Aplicativo de Registro Turistico</title>
+<title>TuriRecibo — Gestión de Servicios Turísticos</title>
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
@@ -167,24 +167,49 @@ tbody tr:hover { background: #fafbff; }
 .modal-footer { padding: 1rem 1.5rem; border-top: 1px solid var(--border); display: flex; gap: 8px; justify-content: flex-end; }
 .btn-x { background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-muted); line-height: 1; padding: 0 4px; }
 
-/* RECEIPT */
-.receipt { font-family: 'Courier New', monospace; max-width: 400px; margin: 0 auto; border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
-.rcpt-hdr { background: linear-gradient(135deg, #1a56db, #0d3d9e); color: #fff; text-align: center; padding: 1.6rem; }
-.rcpt-hdr h2 { font-size: 19px; letter-spacing: 3px; }
-.rcpt-hdr p { font-size: 12px; opacity: 0.82; margin-top: 4px; }
-.rcpt-id { font-size: 11px; letter-spacing: 1.5px; margin-top: 6px; opacity: 0.75; }
-.rcpt-body { padding: 1.2rem; background: var(--surface); }
-.rcpt-section { font-size: 10px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); padding: 8px 0 4px; }
-.rcpt-row { display: flex; justify-content: space-between; padding: 5px 0; font-size: 13px; border-bottom: 1px dashed var(--border); }
-.rcpt-row:last-of-type { border-bottom: none; }
-.rcpt-row .lbl { color: var(--text-muted); }
-.rcpt-row .val { font-weight: 600; text-align: right; max-width: 56%; word-break: break-word; }
-.rcpt-sub { background: #f8faff; padding: 10px 12px; border-top: 1px dashed var(--border); }
-.rcpt-sub .rcpt-row { font-size: 12px; border-bottom: none; padding: 3px 0; }
-.rcpt-total { background: var(--accent-light); padding: 14px; display: flex; justify-content: space-between; align-items: center; border-top: 2px solid var(--accent); }
-.rcpt-total .lbl { font-weight: 800; color: var(--accent); font-size: 14px; }
-.rcpt-total .val { font-weight: 900; color: var(--accent); font-size: 24px; }
-.rcpt-ftr { text-align: center; padding: 1rem; background: var(--surface2); font-size: 12px; color: var(--text-muted); border-top: 1px solid var(--border); }
+/* RECEIPT — professional A4-style */
+#receipt-render {
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  width: 480px; margin: 0 auto;
+  background: #fff; color: #1a202c;
+  border-radius: 12px; overflow: hidden;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.10);
+}
+.rcpt-top-stripe { height: 6px; background: linear-gradient(90deg, #1a56db, #0891b2, #0d9f6e); }
+.rcpt-hdr { background: linear-gradient(135deg, #0d3d9e 0%, #1a56db 60%, #1565c0 100%); color: #fff; padding: 1.8rem 2rem 1.4rem; }
+.rcpt-hdr-inner { display: flex; align-items: center; gap: 16px; margin-bottom: 1rem; }
+.rcpt-logo-circle { width: 52px; height: 52px; background: rgba(255,255,255,0.18); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 26px; flex-shrink: 0; border: 2px solid rgba(255,255,255,0.35); }
+.rcpt-brand { flex: 1; }
+.rcpt-brand h1 { font-size: 20px; font-weight: 900; letter-spacing: 3px; margin-bottom: 2px; }
+.rcpt-brand p { font-size: 11px; opacity: 0.78; letter-spacing: 0.5px; }
+.rcpt-num-badge { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); border-radius: 8px; padding: 3px 12px; font-size: 12px; font-weight: 700; letter-spacing: 1px; white-space: nowrap; }
+.rcpt-meta-row { display: flex; gap: 20px; flex-wrap: wrap; }
+.rcpt-meta-item { }
+.rcpt-meta-item .mi-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.65; margin-bottom: 2px; }
+.rcpt-meta-item .mi-val { font-size: 13px; font-weight: 600; }
+.rcpt-divider-wave { background: #fff; height: 12px; clip-path: polygon(0 100%, 4% 0, 8% 100%, 12% 0, 16% 100%, 20% 0, 24% 100%, 28% 0, 32% 100%, 36% 0, 40% 100%, 44% 0, 48% 100%, 52% 0, 56% 100%, 60% 0, 64% 100%, 68% 0, 72% 100%, 76% 0, 80% 100%, 84% 0, 88% 100%, 92% 0, 96% 100%, 100% 0, 100% 100%); }
+.rcpt-body { padding: 1.4rem 2rem; background: #fff; }
+.rcpt-section-title { display: flex; align-items: center; gap: 7px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.09em; color: #1a56db; margin: 14px 0 8px; padding-bottom: 5px; border-bottom: 1.5px solid #e8f0fe; }
+.rcpt-section-title:first-child { margin-top: 0; }
+.rcpt-row { display: flex; justify-content: space-between; align-items: flex-start; padding: 5px 0; font-size: 13px; }
+.rcpt-row .lbl { color: #6b7280; flex: 1; padding-right: 10px; }
+.rcpt-row .val { font-weight: 600; text-align: right; max-width: 58%; word-break: break-word; color: #1a202c; }
+.rcpt-calc { background: #f8faff; border: 1px solid #dbeafe; border-radius: 10px; padding: 12px 16px; margin: 14px 0; }
+.rcpt-calc-row { display: flex; justify-content: space-between; font-size: 12px; padding: 3px 0; color: #6b7280; }
+.rcpt-calc-row strong { color: #1a202c; }
+.rcpt-calc-divider { border: none; border-top: 1px dashed #bcd4fd; margin: 6px 0; }
+.rcpt-total-box { background: linear-gradient(135deg, #1a56db, #0d3d9e); border-radius: 10px; padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; margin: 4px 0 14px; }
+.rcpt-total-box .t-label { color: rgba(255,255,255,0.85); font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+.rcpt-total-box .t-amount { color: #fff; font-size: 26px; font-weight: 900; letter-spacing: 0.5px; }
+.rcpt-status-bar { display: flex; align-items: center; justify-content: center; gap: 8px; background: #e6f9f2; border-radius: 8px; padding: 8px 16px; margin-bottom: 4px; font-size: 13px; font-weight: 700; color: #0d9f6e; }
+.rcpt-ftr { background: linear-gradient(135deg, #f8faff, #f0f4ff); border-top: 1px solid #e8f0fe; padding: 1rem 2rem; }
+.rcpt-ftr-inner { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.rcpt-ftr-brand { display: flex; align-items: center; gap: 8px; }
+.rcpt-ftr-brand .fb-icon { width: 28px; height: 28px; background: linear-gradient(135deg, #1a56db, #0d3d9e); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+.rcpt-ftr-brand .fb-text { font-size: 12px; font-weight: 700; color: #1a56db; }
+.rcpt-ftr-brand .fb-sub { font-size: 10px; color: #6b7280; margin-top: 1px; }
+.rcpt-ftr-right { text-align: right; font-size: 11px; color: #6b7280; line-height: 1.5; }
+.rcpt-bottom-stripe { height: 4px; background: linear-gradient(90deg, #0d9f6e, #1a56db, #0891b2); }
 
 /* EMPTY */
 .empty { text-align: center; padding: 2.5rem 1rem; color: var(--text-muted); }
@@ -215,7 +240,7 @@ tbody tr:hover { background: #fafbff; }
     <div class="auth-header">
       <div class="logo">✈️</div>
       <h1>TURIRECIBO</h1>
-      <p>Aplicativo de Registro Turístico</p>
+      <p>Sistema de Gestión de Servicios Turísticos</p>
     </div>
     <div class="auth-tabs">
       <div class="auth-tab active" id="tab-login" onclick="switchTab('login')">Iniciar Sesión</div>
@@ -251,7 +276,7 @@ tbody tr:hover { background: #fafbff; }
         <button class="auth-btn" onclick="doRegister()">Crear Cuenta →</button>
       </div>
     </div>
-    <div class="auth-footer">© 2026 TuriRecibo · Bolivia 🇧🇴</div>
+    <div class="auth-footer">© 2025 TuriRecibo · Bolivia 🇧🇴</div>
   </div>
 </div>
 
@@ -450,7 +475,25 @@ tbody tr:hover { background: #fafbff; }
 
 <!-- MODALES -->
 <div class="modal-overlay" id="m-recibo">
-  <div class="modal"><div class="modal-header"><span class="modal-title">🧾 Recibo Digital</span><button class="btn-x" onclick="closeM('m-recibo')">×</button></div><div class="modal-body" id="m-rec-body"></div><div class="modal-footer"><button class="btn btn-outline" onclick="closeM('m-recibo')">Cerrar</button><button class="btn btn-primary" onclick="window.print()">🖨️ Imprimir / PDF</button></div></div>
+  <div class="modal" style="max-width:560px">
+    <div class="modal-header">
+      <span class="modal-title">🧾 Recibo Digital</span>
+      <button class="btn-x" onclick="closeM('m-recibo')">×</button>
+    </div>
+    <div class="modal-body" id="m-rec-body"></div>
+    <div class="modal-footer" style="flex-wrap:wrap;gap:8px">
+      <button class="btn btn-outline" onclick="closeM('m-recibo')" style="margin-right:auto">✖ Cerrar</button>
+      <button class="btn" style="background:#25D366;color:#fff;gap:7px" onclick="shareWhatsApp()" id="btn-wa">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        WhatsApp
+      </button>
+      <button class="btn btn-primary" onclick="downloadPDF()" id="btn-pdf">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Descargar PDF
+      </button>
+      <button class="btn" style="background:#475569;color:#fff" onclick="printRecibo()">🖨️ Imprimir</button>
+    </div>
+  </div>
 </div>
 
 <div class="modal-overlay" id="m-srv">
@@ -727,42 +770,172 @@ function renderRecibos(){
 }
 function showRecibo(id){
   const r=DB.regs.find(x=>x.id===id); if(!r)return;
-  const sub=r.punit*r.per, desc=sub*(r.dsc/100);
+  window._reciboActual=r;
+  const sub=(r.punit||0)*r.per, desc=sub*(r.dsc/100), tot=r.monto;
+  const emitido=new Date(r.ts).toLocaleString('es-BO',{day:'2-digit',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'});
+  const emp = ME?.emp || 'TuriRecibo';
   document.getElementById('m-rec-body').innerHTML=`
-    <div class="receipt">
-      <div class="rcpt-hdr">
-        <div style="font-size:36px;margin-bottom:8px">✈️</div>
-        <h2>TURIRECIBO</h2>
-        <p>Recibo Oficial de Servicio Turístico</p>
-        <div class="rcpt-id">N° ${r.id.slice(-8).toUpperCase()}</div>
-        <div style="font-size:10px;opacity:0.65;margin-top:6px">Emitido: ${new Date(r.ts).toLocaleString('es-BO')}</div>
+<div id="receipt-render">
+  <div class="rcpt-top-stripe"></div>
+  <div class="rcpt-hdr">
+    <div class="rcpt-hdr-inner">
+      <div class="rcpt-logo-circle">✈️</div>
+      <div class="rcpt-brand">
+        <h1>TURIRECIBO</h1>
+        <p>Sistema Oficial de Gestión Turística · Bolivia 🇧🇴</p>
       </div>
-      <div class="rcpt-body">
-        <div class="rcpt-section">Datos del Turista</div>
-        <div class="rcpt-row"><span class="lbl">Nombre</span><span class="val">${r.nom}</span></div>
-        ${r.doc?`<div class="rcpt-row"><span class="lbl">Documento</span><span class="val">${r.doc}</span></div>`:''}
-        ${r.nac?`<div class="rcpt-row"><span class="lbl">Nacionalidad</span><span class="val">${r.nac}</span></div>`:''}
-        ${r.con?`<div class="rcpt-row"><span class="lbl">Contacto</span><span class="val">${r.con}</span></div>`:''}
-        <div class="rcpt-section">Detalle del Servicio</div>
-        <div class="rcpt-row"><span class="lbl">Servicio</span><span class="val">${r.snom}</span></div>
-        ${r.des?`<div class="rcpt-row"><span class="lbl">Detalle</span><span class="val">${r.des}</span></div>`:''}
-        <div class="rcpt-row"><span class="lbl">Fecha</span><span class="val">${fmtDate(r.fec)}</span></div>
-        <div class="rcpt-row"><span class="lbl">Personas</span><span class="val">${r.per}</span></div>
-        <div class="rcpt-row"><span class="lbl">Método de pago</span><span class="val">${r.met}</span></div>
-        ${r.not?`<div class="rcpt-row"><span class="lbl">Notas</span><span class="val">${r.not}</span></div>`:''}
+      <div class="rcpt-num-badge">N° ${r.id.slice(-8).toUpperCase()}</div>
+    </div>
+    <div class="rcpt-meta-row">
+      <div class="rcpt-meta-item"><div class="mi-label">Empresa / Agencia</div><div class="mi-val">${emp}</div></div>
+      <div class="rcpt-meta-item"><div class="mi-label">Fecha de emisión</div><div class="mi-val">${emitido}</div></div>
+      <div class="rcpt-meta-item"><div class="mi-label">Estado</div><div class="mi-val">✅ PAGADO</div></div>
+    </div>
+  </div>
+  <div class="rcpt-divider-wave" style="background:linear-gradient(135deg,#0d3d9e,#1a56db);"></div>
+  <div style="height:6px;background:#fff"></div>
+
+  <div class="rcpt-body">
+    <div class="rcpt-section-title">
+      <svg width="13" height="13" fill="#1a56db" viewBox="0 0 24 24"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
+      Datos del Turista
+    </div>
+    <div class="rcpt-row"><span class="lbl">Nombre completo</span><span class="val">${r.nom}</span></div>
+    ${r.doc?`<div class="rcpt-row"><span class="lbl">Documento</span><span class="val">${r.doc}</span></div>`:''}
+    ${r.nac?`<div class="rcpt-row"><span class="lbl">Nacionalidad</span><span class="val">${r.nac}</span></div>`:''}
+    ${r.con?`<div class="rcpt-row"><span class="lbl">Contacto</span><span class="val">${r.con}</span></div>`:''}
+
+    <div class="rcpt-section-title">
+      <svg width="13" height="13" fill="#1a56db" viewBox="0 0 24 24"><path d="M20 6h-2.18c.07-.44.18-.88.18-1.33C18 2.1 15.9 0 13.33 0c-1.48 0-2.78.79-3.58 1.98L12 4.9l2.25-2.92A1.98 1.98 0 0115.67 2c1.1 0 1.99.89 1.99 2 0 .71-.29 1.33-.71 1.82L14 9.5v.5h6a1 1 0 011 1v10a1 1 0 01-1 1H4a1 1 0 01-1-1v-10a1 1 0 011-1h6v-.5L7.05 5.82A2.7 2.7 0 016.33 4c0-1.11.89-2 2-2 .79 0 1.47.49 1.78 1.18L12 4.9 9.75 2.98A3.32 3.32 0 007.33 2C4.76 2 2.67 4.1 2.67 6.67c0 .45.11.89.18 1.33H.67C.3 8 0 8.3 0 8.67V21a1 1 0 001 1h22a1 1 0 001-1V8.67C24 8.3 23.7 8 23.33 8H20z"/></svg>
+      Servicio Adquirido
+    </div>
+    <div class="rcpt-row"><span class="lbl">Servicio</span><span class="val">${r.snom}</span></div>
+    ${r.des?`<div class="rcpt-row"><span class="lbl">Descripción</span><span class="val">${r.des}</span></div>`:''}
+    <div class="rcpt-row"><span class="lbl">Fecha del servicio</span><span class="val">${fmtDate(r.fec)}</span></div>
+    <div class="rcpt-row"><span class="lbl">N° de personas</span><span class="val">${r.per} persona${r.per>1?'s':''}</span></div>
+    <div class="rcpt-row"><span class="lbl">Método de pago</span><span class="val">${r.met}</span></div>
+    ${r.not?`<div class="rcpt-row"><span class="lbl">Observaciones</span><span class="val">${r.not}</span></div>`:''}
+
+    <div class="rcpt-section-title">
+      <svg width="13" height="13" fill="#1a56db" viewBox="0 0 24 24"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg>
+      Resumen de Pago
+    </div>
+    <div class="rcpt-calc">
+      <div class="rcpt-calc-row"><span>Precio por persona</span><strong>Bs. ${(r.punit||0).toFixed(2)}</strong></div>
+      <div class="rcpt-calc-row"><span>× ${r.per} persona${r.per>1?'s':''}</span><strong>Bs. ${sub.toFixed(2)}</strong></div>
+      ${r.dsc>0?`<hr class="rcpt-calc-divider"><div class="rcpt-calc-row" style="color:#c81e1e"><span>Descuento ${r.dsc}%</span><strong style="color:#c81e1e">- Bs. ${desc.toFixed(2)}</strong></div>`:''}
+    </div>
+    <div class="rcpt-total-box">
+      <div><div class="t-label">Total Pagado</div></div>
+      <div class="t-amount">Bs. ${tot.toFixed(2)}</div>
+    </div>
+    <div class="rcpt-status-bar">
+      <svg width="16" height="16" fill="none" stroke="#0d9f6e" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      Pago verificado y confirmado
+    </div>
+  </div>
+
+  <div class="rcpt-ftr">
+    <div class="rcpt-ftr-inner">
+      <div class="rcpt-ftr-brand">
+        <div class="fb-icon">✈️</div>
+        <div>
+          <div class="fb-text">TuriRecibo</div>
+          <div class="fb-sub">Gestión de Servicios Turísticos</div>
+        </div>
       </div>
-      <div class="rcpt-sub">
-        <div class="rcpt-row"><span class="lbl">Precio unitario</span><span class="val">Bs. ${(r.punit||0).toFixed(2)}</span></div>
-        <div class="rcpt-row"><span class="lbl">× ${r.per} persona${r.per>1?'s':''}</span><span class="val">Bs. ${sub.toFixed(2)}</span></div>
-        ${r.dsc>0?`<div class="rcpt-row" style="color:var(--danger)"><span class="lbl">Descuento ${r.dsc}%</span><span class="val">- Bs. ${desc.toFixed(2)}</span></div>`:''}
+      <div class="rcpt-ftr-right">
+        <div>Este documento es comprobante válido de pago</div>
+        <div>Bolivia 🇧🇴 · ${new Date().getFullYear()}</div>
       </div>
-      <div class="rcpt-total"><span class="lbl">TOTAL PAGADO</span><span class="val">Bs. ${r.monto.toFixed(2)}</span></div>
-      <div class="rcpt-ftr">
-        <div>🙏 Gracias por elegir nuestros servicios turísticos</div>
-        <div style="margin-top:4px;font-size:11px">Recibo válido como comprobante de pago · Bolivia 🇧🇴</div>
-      </div>
-    </div>`;
+    </div>
+  </div>
+  <div class="rcpt-bottom-stripe"></div>
+</div>`;
   document.getElementById('m-recibo').classList.add('show');
+}
+
+let _pdfLib=false;
+function loadPDFLibs(cb){
+  if(_pdfLib){cb();return;}
+  const s1=document.createElement('script');
+  s1.src='https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+  s1.onload=()=>{
+    const s2=document.createElement('script');
+    s2.src='https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+    s2.onload=()=>{_pdfLib=true;cb();};
+    document.head.appendChild(s2);
+  };
+  document.head.appendChild(s1);
+}
+
+async function downloadPDF(){
+  const btn=document.getElementById('btn-pdf');
+  btn.textContent='⏳ Generando...'; btn.disabled=true;
+  loadPDFLibs(async()=>{
+    try{
+      const el=document.getElementById('receipt-render');
+      const canvas=await html2canvas(el,{scale:2,useCORS:true,backgroundColor:'#ffffff',logging:false});
+      const imgData=canvas.toDataURL('image/png');
+      const {jsPDF}=window.jspdf;
+      const pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+      const pW=pdf.internal.pageSize.getWidth();
+      const pH=pdf.internal.pageSize.getHeight();
+      const cW=canvas.width, cH=canvas.height;
+      const ratio=cW/cH;
+      let rW=pW-20, rH=rW/ratio;
+      if(rH>pH-20){rH=pH-20;rW=rH*ratio;}
+      const xOff=(pW-rW)/2, yOff=10;
+      pdf.addImage(imgData,'PNG',xOff,yOff,rW,rH);
+      const r=window._reciboActual;
+      pdf.save(`Recibo_${r.nom.replace(/\s+/g,'_')}_${r.id.slice(-6).toUpperCase()}.pdf`);
+    }catch(e){alert('Error al generar PDF: '+e.message);}
+    btn.innerHTML='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Descargar PDF';
+    btn.disabled=false;
+  });
+}
+
+function shareWhatsApp(){
+  const r=window._reciboActual; if(!r)return;
+  const sub=(r.punit||0)*r.per, desc=sub*(r.dsc/100);
+  const msg=
+`✈️ *TURIRECIBO* — Recibo de Servicio Turístico
+━━━━━━━━━━━━━━━━━━━━
+🔖 *Recibo N°:* ${r.id.slice(-8).toUpperCase()}
+📅 *Emitido:* ${new Date(r.ts).toLocaleDateString('es-BO')}
+━━━━━━━━━━━━━━━━━━━━
+👤 *TURISTA*
+• Nombre: ${r.nom}${r.doc?'\n• Documento: '+r.doc:''}${r.nac?'\n• Nacionalidad: '+r.nac:''}${r.con?'\n• Contacto: '+r.con:''}
+━━━━━━━━━━━━━━━━━━━━
+🏖️ *SERVICIO*
+• Servicio: ${r.snom}${r.des?'\n• Detalle: '+r.des:''}
+• Fecha: ${fmtDate(r.fec)}
+• Personas: ${r.per}
+• Método de pago: ${r.met}${r.not?'\n• Notas: '+r.not:''}
+━━━━━━━━━━━━━━━━━━━━
+💰 *RESUMEN DE PAGO*
+• Precio unitario: Bs. ${(r.punit||0).toFixed(2)}
+• × ${r.per} persona${r.per>1?'s':''}: Bs. ${sub.toFixed(2)}${r.dsc>0?'\n• Descuento '+r.dsc+'%: - Bs. '+desc.toFixed(2):''}
+━━━━━━━━━━━━━━━━━━━━
+✅ *TOTAL PAGADO: Bs. ${r.monto.toFixed(2)}*
+━━━━━━━━━━━━━━━━━━━━
+_Gracias por elegir nuestros servicios turísticos 🙏_
+_Bolivia 🇧🇴 · TuriRecibo_`;
+  const url='https://wa.me/?text='+encodeURIComponent(msg);
+  window.open(url,'_blank');
+}
+
+function printRecibo(){
+  const el=document.getElementById('receipt-render');
+  if(!el)return;
+  const w=window.open('','_blank','width=600,height=800');
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Recibo TuriRecibo</title><style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{background:#fff;padding:20px;font-family:'Segoe UI',system-ui,sans-serif}
+    ${document.querySelector('style').innerHTML.replace(/<[^>]*>/g,'')}
+    #receipt-render{box-shadow:none;max-width:100%}
+  </style></head><body>${el.outerHTML}<script>window.onload=()=>{window.print();setTimeout(()=>window.close(),500)}<\/script></body></html>`);
+  w.document.close();
 }
 
 // ============================================================
